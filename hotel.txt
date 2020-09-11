@@ -52,7 +52,109 @@ FROM ospiti
 WHERE document_type LIKE 'Driver License'
       AND YEAR(date_of_birth) = 1975;
 
+
+
 8) Quanti posti letto ha l'hotel in totale?
 
 SELECT SUM(beds)
 FROM stanze;
+
+
+
+GROUP BY
+
+1) Conta gli ospiti raggruppandoli per anno di nascita
+
+SELECT YEAR(date_of_birth), COUNT(*)
+  FROM ospiti
+    GROUP BY YEAR(date_of_birth);
+
+
+
+2) Somma i prezzi dei pagamenti raggruppandoli per status
+
+SELECT status, SUM(price)
+  FROM pagamenti
+    GROUP BY status;
+
+
+
+3) Conta quante volte è stata prenotata ogni stanza
+
+SELECT stanza_id, COUNT(*)
+  FROM prenotazioni
+    GROUP BY stanza_id;
+
+
+
+4) Fai una analisi per vedere se ci sono ore in cui le prenotazioni sono più frequenti
+
+SELECT HOUR(created_at), COUNT(created_at)
+  FROM prenotazioni
+    GROUP BY HOUR(created_at)
+      ORDER BY COUNT(created_at) DESC;
+
+
+
+
+JOIN
+
+1) Come si chiamano gli ospiti che hanno fatto più di due prenotazioni?
+
+SELECT *
+  FROM ospiti
+    JOIN prenotazioni_has_ospiti
+      ON ospiti.id = prenotazioni_has_ospiti.ospite_id
+        WHERE prenotazioni_has_ospiti.ospite_id > 2;
+
+
+
+
+2) Stampare tutti gli ospiti per ogni prenotazione
+
+SELECT *
+  FROM ospiti
+    JOIN prenotazioni_has_ospiti
+      ON ospiti.id = prenotazioni_has_ospiti.ospite_id;
+
+
+
+3) Stampare Nome, Cognome, Prezzo e Pagante per tutte le prenotazioni fatte a Maggio 2018
+
+SELECT ospiti.name, ospiti.lastname, pagamenti.price, paganti.id
+  FROM ospiti
+    JOIN prenotazioni_has_ospiti
+      ON ospiti.id = prenotazioni_has_ospiti.ospite_id
+        JOIN paganti
+          ON ospiti.id = paganti.ospite_id
+            JOIN pagamenti
+              ON paganti.id = pagamenti.pagante_id
+                WHERE YEAR(prenotazioni.created_at) = YEAR(2018);
+
+
+4) Fai la somma di tutti i prezzi delle prenotazioni per le stanze del primo piano
+
+SELECT pagamenti.price, stanze.floor, SUM(price)
+  FROM pagamenti
+    JOIN prenotazioni
+      ON pagamenti.prenotazione_id = prenotazioni.id
+        JOIN stanze
+          ON prenotazioni.stanza_id = stanze.id
+            WHERE stanze.floor = 1
+              GROUP BY pagamenti.price;
+
+
+
+5) Prendi i dati di fatturazione per la prenotazione con id=7
+
+SELECT ospiti.id
+  FROM prenotazioni
+    JOIN prenotazioni_has_ospiti
+      ON prenotazioni.id = prenotazioni_has_ospiti.prenotazione_id
+        JOIN ospiti
+          ON prenotazioni_has_ospiti.ospite_id = ospiti.id
+            WHERE prenotazioni.id = 7;
+
+
+
+6) Le stanze sono state tutte prenotate almeno una volta? (Visualizzare le stanze non ancora prenotate)
